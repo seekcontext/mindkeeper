@@ -10,6 +10,7 @@
   <a href="https://www.npmjs.com/package/mindkeeper-openclaw"><img src="https://img.shields.io/npm/v/mindkeeper-openclaw?label=openclaw%20plugin&color=blue" alt="npm (openclaw plugin)"></a>
   <a href="https://www.npmjs.com/package/mindkeeper"><img src="https://img.shields.io/npm/v/mindkeeper?label=core%20cli&color=blue" alt="npm (core)"></a>
   <a href="https://www.npmjs.com/package/mindkeeper-openclaw"><img src="https://img.shields.io/npm/dm/mindkeeper-openclaw?color=brightgreen" alt="npm downloads"></a>
+  <a href="https://github.com/seekcontext/mindkeeper/stargazers"><img src="https://img.shields.io/github/stars/seekcontext/mindkeeper?style=flat&color=yellow" alt="GitHub Stars"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
 </p>
 
