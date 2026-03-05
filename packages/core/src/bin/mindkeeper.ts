@@ -10,7 +10,7 @@ const program = new Command();
 program
   .name("mindkeeper")
   .description("Time machine for your AI's brain — version control for agent context files")
-  .version("0.2.4");
+  .version("0.2.5");
 
 function resolveWorkDir(dir?: string): string {
   return path.resolve(dir ?? process.cwd());
