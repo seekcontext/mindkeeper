@@ -1,0 +1,57 @@
+{
+  "name": "mindkeeper-openclaw",
+  "version": "0.1.0",
+  "description": "OpenClaw plugin for mindkeeper: auto-snapshot, diff, and rollback for agent context files",
+  "keywords": [
+    "openclaw",
+    "openclaw-plugin",
+    "mindkeeper",
+    "agent",
+    "version-control",
+    "snapshot",
+    "rollback"
+  ],
+  "homepage": "https://github.com/your-org/mindkeeper#readme",
+  "bugs": {
+    "url": "https://github.com/your-org/mindkeeper/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/mindkeeper.git",
+    "directory": "packages/openclaw"
+  },
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "skills",
+    "openclaw.plugin.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "pnpm run clean && pnpm run build"
+  },
+  "openclaw": {
+    "extensions": ["./dist/index.js"]
+  },
+  "dependencies": {
+    "mindkeeper": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

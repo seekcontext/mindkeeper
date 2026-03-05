@@ -1,0 +1,64 @@
+{
+  "name": "mindkeeper",
+  "version": "0.1.0",
+  "description": "Time machine for your AI's brain — auto-snapshot, diff, and rollback for AGENTS.md, SOUL.md, MEMORY.md, and more",
+  "keywords": [
+    "agent",
+    "context",
+    "version-control",
+    "snapshot",
+    "rollback",
+    "diff",
+    "ai",
+    "mindkeeper",
+    "openclaw"
+  ],
+  "homepage": "https://github.com/your-org/mindkeeper#readme",
+  "bugs": {
+    "url": "https://github.com/your-org/mindkeeper/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/mindkeeper.git",
+    "directory": "packages/core"
+  },
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "bin": {
+    "mindkeeper": "dist/bin/mindkeeper.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "prepublishOnly": "pnpm run clean && pnpm run build && pnpm run test"
+  },
+  "dependencies": {
+    "isomorphic-git": "^1.29.0",
+    "diff": "^7.0.0",
+    "chokidar": "^4.0.0",
+    "commander": "^13.0.0",
+    "minimatch": "^10.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "@types/diff": "^6.0.0",
+    "@types/node": "^22.0.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

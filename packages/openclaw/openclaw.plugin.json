@@ -1,0 +1,72 @@
+{
+  "id": "mindkeeper",
+  "name": "Mindkeeper",
+  "description": "Time machine for your AI's brain. Auto-snapshots every change to agent context files (AGENTS.md, SOUL.md, MEMORY.md, skills, etc.) with full history, visual diffs, and one-command rollback.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "tracking": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "include": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Glob patterns for files to track"
+          },
+          "exclude": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Glob patterns for files to exclude"
+          }
+        }
+      },
+      "snapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "debounceMs": {
+            "type": "number",
+            "description": "Debounce interval for auto-snapshots (ms)",
+            "default": 60000
+          }
+        }
+      },
+      "commitMessage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["template", "llm"],
+            "default": "template",
+            "description": "How to generate commit messages: 'template' (fast, no API call) or 'llm' (uses your configured model)"
+          }
+        }
+      }
+    }
+  },
+  "uiHints": {
+    "tracking.include": {
+      "label": "Tracked file patterns",
+      "placeholder": "AGENTS.md, memory/**/*.md, skills/**/*.md"
+    },
+    "tracking.exclude": {
+      "label": "Excluded file patterns",
+      "placeholder": "BOOTSTRAP.md, canvas/**"
+    },
+    "snapshot.debounceMs": {
+      "label": "Auto-snapshot interval (ms)",
+      "placeholder": "60000"
+    },
+    "commitMessage.mode": {
+      "label": "Commit message mode"
+    }
+  },
+  "install": {
+    "npmSpec": "mindkeeper-openclaw",
+    "defaultChoice": "npm"
+  },
+  "skills": ["skills"]
+}

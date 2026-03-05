@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.context-vault/
+watcher.lock
+*.swp
+*.swo
+.DS_Store
