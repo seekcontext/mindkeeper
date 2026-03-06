@@ -169,7 +169,7 @@ function formatHistoryResult(commits: CommitInfo[]) {
     count: commits.length,
     entries: commits.map((c) => ({
       oid: c.oid.slice(0, 8),
-      date: c.date.toISOString().replace("T", " ").slice(0, 19),
+      date: c.date.toLocaleString("sv-SE", { hour12: false }),
       message: c.message,
     })),
   };

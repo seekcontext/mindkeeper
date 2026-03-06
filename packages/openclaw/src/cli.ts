@@ -48,7 +48,7 @@ export function registerTrackerCli(
             return;
           }
           for (const c of commits) {
-            const date = c.date.toISOString().replace("T", " ").slice(0, 19);
+            const date = c.date.toLocaleString("sv-SE", { hour12: false });
             console.log(`${c.oid.slice(0, 8)}  ${date}  ${c.message}`);
           }
         });

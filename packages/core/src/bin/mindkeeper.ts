@@ -92,7 +92,7 @@ program
     console.log("─".repeat(72));
     for (const c of commits) {
       const short = c.oid.slice(0, 8);
-      const date = c.date.toISOString().replace("T", " ").slice(0, 19);
+      const date = c.date.toLocaleString("sv-SE", { hour12: false });
       console.log(`${short}    ${date}   ${c.message}`);
     }
   });
@@ -177,7 +177,7 @@ program
     const watcher = new Watcher({
       tracker,
       onSnapshot: (commit) => {
-        const time = new Date().toISOString().replace("T", " ").slice(0, 19);
+        const time = new Date().toLocaleString("sv-SE", { hour12: false });
         console.log(`[${time}] Snapshot ${commit.oid.slice(0, 8)}: ${commit.message}`);
       },
       onError: (err) => {
