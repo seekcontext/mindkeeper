@@ -1,5 +1,20 @@
-import { Type } from "@sinclair/typebox";
 import type { Tracker, DiffResult, CommitInfo, TrackerStatus } from "mindkeeper";
+
+function Obj(props: Record<string, unknown>) {
+  return { type: "object", properties: props, additionalProperties: false };
+}
+function Str(description: string) {
+  return { type: "string", description };
+}
+function OptStr(description: string) {
+  return { type: "string", description };
+}
+function OptNum(description: string) {
+  return { type: "number", description };
+}
+function OptBool(description: string) {
+  return { type: "boolean", description };
+}
 
 type AgentToolResult = {
   content: Array<{ type: "text"; text: string }>;
@@ -42,13 +57,9 @@ export function registerTrackerTools(
     description:
       "View version history of agent context files. " +
       "Optionally filter by a specific file. Returns commit hashes, dates, and messages.",
-    parameters: Type.Object({
-      file: Type.Optional(
-        Type.String({ description: "File path to filter history (e.g. 'SOUL.md'). Omit for all files." }),
-      ),
-      limit: Type.Optional(
-        Type.Number({ description: "Maximum number of entries to return (default: 10)." }),
-      ),
+    parameters: Obj({
+      file: OptStr("File path to filter history (e.g. 'SOUL.md'). Omit for all files."),
+      limit: OptNum("Maximum number of entries to return (default: 10)."),
     }),
     execute: async (_id, params) => {
       const commits = await getTracker(trackerRef).history({
@@ -65,12 +76,10 @@ export function registerTrackerTools(
     description:
       "Compare two versions of an agent context file. " +
       "Shows additions, deletions, and a unified diff.",
-    parameters: Type.Object({
-      file: Type.String({ description: "File path to compare (e.g. 'SOUL.md')." }),
-      from: Type.String({ description: "Source commit hash." }),
-      to: Type.Optional(
-        Type.String({ description: "Target commit hash (defaults to HEAD)." }),
-      ),
+    parameters: Obj({
+      file: Str("File path to compare (e.g. 'SOUL.md')."),
+      from: Str("Source commit hash."),
+      to: OptStr("Target commit hash (defaults to HEAD)."),
     }),
     execute: async (_id, params) => {
       const result = await getTracker(trackerRef).diff({
@@ -88,14 +97,10 @@ export function registerTrackerTools(
     description:
       "Rollback an agent context file to a previous version. " +
       "First call with preview=true to see the diff, then call again with preview=false to execute.",
-    parameters: Type.Object({
-      file: Type.String({ description: "File path to rollback (e.g. 'SOUL.md')." }),
-      to: Type.String({ description: "Commit hash to rollback to." }),
-      preview: Type.Optional(
-        Type.Boolean({
-          description: "If true, show diff preview without executing rollback. Default: true.",
-        }),
-      ),
+    parameters: Obj({
+      file: Str("File path to rollback (e.g. 'SOUL.md')."),
+      to: Str("Commit hash to rollback to."),
+      preview: OptBool("If true, show diff preview without executing rollback. Default: true."),
     }),
     execute: async (_id, params) => {
       const file = params.file as string;
@@ -129,11 +134,9 @@ export function registerTrackerTools(
     description:
       "Create a named checkpoint of the current state of all agent context files. " +
       "Useful before making significant changes.",
-    parameters: Type.Object({
-      name: Type.String({ description: "Snapshot name (e.g. 'personality-v2')." }),
-      message: Type.Optional(
-        Type.String({ description: "Optional description of this snapshot." }),
-      ),
+    parameters: Obj({
+      name: Str("Snapshot name (e.g. 'personality-v2')."),
+      message: OptStr("Optional description of this snapshot."),
     }),
     execute: async (_id, params) => {
       const commit = await getTracker(trackerRef).snapshot({
@@ -153,7 +156,7 @@ export function registerTrackerTools(
     label: "Mind Status",
     description:
       "Show the current tracking status: whether mindkeeper is initialized, tracked files, pending changes, and named snapshots.",
-    parameters: Type.Object({}),
+    parameters: Obj({}),
     execute: async () => {
       const status = await getTracker(trackerRef).status();
       return jsonResult(formatStatusResult(status));

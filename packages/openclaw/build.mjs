@@ -38,6 +38,8 @@ await esbuild.build({
 // jiti loads ESM via native import() which is async and causes OpenClaw to
 // see a Promise return from register(), silently dropping all tool registrations.
 // CJS is loaded synchronously by jiti, which is what OpenClaw expects.
+// isomorphic-git, chokidar, diff, minimatch are listed as runtime dependencies
+// so they are installed by npm and loaded at runtime instead of being bundled.
 await esbuild.build({
   entryPoints: ["src/index.ts"],
   bundle: true,
@@ -49,6 +51,11 @@ await esbuild.build({
     ...NODE_EXTERNALS,
     // Keep llm-client external so it stays in its own file with no process.env
     "./llm-client.cjs",
+    // Large runtime deps: not bundled, installed by npm into plugin's node_modules
+    "isomorphic-git",
+    "chokidar",
+    "diff",
+    "minimatch",
   ],
   plugins: [mindkeeperAlias],
   logLevel: "warning",
