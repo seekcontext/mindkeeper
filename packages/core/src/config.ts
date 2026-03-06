@@ -48,7 +48,7 @@ const DEFAULT_CONFIG: TrackerConfig = {
     debounceMs: 30_000,
   },
   commitMessage: {
-    mode: "template",
+    mode: "llm",
   },
 };
 
