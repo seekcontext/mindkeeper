@@ -237,6 +237,28 @@ This file is **never tracked** and never shared. Use it for sensitive settings l
 
 > **Security**: Sensitive fields (e.g., `commitMessage.llm.apiKey`) are **only allowed in global config**. If mindkeeper detects an API key in your workspace config, it refuses to start and tells you exactly what to move. This prevents accidental credential leakage when sharing workspace configs.
 
+### OpenClaw plugin config
+
+When using the mindkeeper-openclaw plugin, you can set `commitMessage.mode` in OpenClaw's config under `plugins.entries.mindkeeper-openclaw.config`:
+
+```json
+{
+  "plugins": {
+    "entries": {
+      "mindkeeper-openclaw": {
+        "config": {
+          "commitMessage": {
+            "mode": "llm"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+LLM mode uses OpenClaw's default model and API key — no extra setup. If no model or API key is configured, mindkeeper falls back to template messages.
+
 ## Architecture
 
 ```

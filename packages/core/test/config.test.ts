@@ -41,6 +41,15 @@ describe("loadConfig", () => {
     expect(config.tracking.include).toContain("AGENTS.md");
   });
 
+  it("merges overrides on top of loaded config", async () => {
+    const config = await loadConfig(tempDir, {
+      commitMessage: { mode: "llm" },
+    });
+
+    expect(config.commitMessage.mode).toBe("llm");
+    expect(config.tracking.include).toContain("AGENTS.md");
+  });
+
   it("rejects sensitive fields in workspace config", async () => {
     await fs.writeFile(
       path.join(tempDir, ".mindkeeper.json"),

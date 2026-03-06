@@ -40,7 +40,7 @@
           "mode": {
             "type": "string",
             "enum": ["template", "llm"],
-            "default": "template",
+            "default": "llm",
             "description": "How to generate commit messages: 'template' (fast, no API call) or 'llm' (uses your configured model)"
           }
         }

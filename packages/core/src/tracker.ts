@@ -15,6 +15,8 @@ export interface TrackerOptions {
   workDir: string;
   gitDir?: string;
   config?: TrackerConfig;
+  /** Overrides merged on top of loaded config (e.g. from OpenClaw plugin) */
+  configOverrides?: Partial<TrackerConfig>;
   llmProvider?: LlmProvider;
 }
 
@@ -56,12 +58,15 @@ export class Tracker {
   readonly workDir: string;
   readonly gitDir: string;
 
+  private configOverrides?: Partial<TrackerConfig>;
+
   constructor(options: TrackerOptions) {
     this.workDir = path.resolve(options.workDir);
     this.gitDir = options.gitDir
       ? path.resolve(options.gitDir)
       : path.join(this.workDir, GITDIR_NAME);
     this.config = options.config ?? getDefaultConfig();
+    this.configOverrides = options.configOverrides;
     this.llmProvider = options.llmProvider;
 
     this.store = new IsomorphicGitStore({
@@ -71,7 +76,7 @@ export class Tracker {
   }
 
   async init(): Promise<{ initialFiles: string[] }> {
-    this.config = await loadConfig(this.workDir);
+    this.config = await loadConfig(this.workDir, this.configOverrides);
     await this.store.init();
     await this.ensureGitignore();
 

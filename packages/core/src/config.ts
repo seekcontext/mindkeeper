@@ -129,7 +129,10 @@ export function getWorkspaceConfigPath(workDir: string): string {
   return path.join(workDir, ".mindkeeper.json");
 }
 
-export async function loadConfig(workDir: string): Promise<TrackerConfig> {
+export async function loadConfig(
+  workDir: string,
+  overrides?: Partial<TrackerConfig>,
+): Promise<TrackerConfig> {
   let merged: Record<string, unknown> = structuredClone(
     DEFAULT_CONFIG as unknown as Record<string, unknown>,
   );
@@ -145,6 +148,10 @@ export async function loadConfig(workDir: string): Promise<TrackerConfig> {
   if (workspaceConfig) {
     validateNoSensitiveFields(workspaceConfig, workspacePath);
     merged = deepMerge(merged, workspaceConfig);
+  }
+
+  if (overrides && Object.keys(overrides).length > 0) {
+    merged = deepMerge(merged, overrides as unknown as Record<string, unknown>);
   }
 
   return merged as unknown as TrackerConfig;

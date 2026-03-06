@@ -20,6 +20,7 @@ interface PluginService {
 }
 
 interface PluginApi {
+  pluginConfig?: Record<string, unknown>;
   log?: {
     info?(...args: unknown[]): void;
     warn?(...args: unknown[]): void;
@@ -54,7 +55,14 @@ export function createWatcherService(
         log,
       });
 
-      const tracker = new Tracker({ workDir: workspaceDir, llmProvider: llmProvider ?? undefined });
+      const configOverrides = api.pluginConfig as
+        | { commitMessage?: { mode?: "template" | "llm" } }
+        | undefined;
+      const tracker = new Tracker({
+        workDir: workspaceDir,
+        llmProvider: llmProvider ?? undefined,
+        configOverrides: configOverrides ?? undefined,
+      });
       await tracker.init();
       trackerRef.current = tracker;
 
