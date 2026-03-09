@@ -1,9 +1,11 @@
 /**
  * API key resolution from auth-profiles.json and environment variables.
+ * Paths align with OpenClaw's auth store layout (agent-specific and legacy).
  * This file contains process.env access only — no network calls.
  * Kept separate from llm-client.ts to avoid security scanner false positives.
  */
 
+import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
@@ -67,20 +69,88 @@ async function readAuthProfileKey(provider: string): Promise<string | null> {
   return null;
 }
 
+/**
+ * Build candidate paths for auth-profiles.json.
+ * Order matches OpenClaw's resolution: explicit overrides first, then agent dirs,
+ * then legacy global paths.
+ */
 function buildAuthProfilePaths(): string[] {
   const home = os.homedir();
   const paths: string[] = [];
 
-  const envHome = process.env.OPENCLAW_HOME;
+  // 1. Explicit agent dir (OPENCLAW_AGENT_DIR or PI_CODING_AGENT_DIR)
+  const agentDir =
+    process.env.OPENCLAW_AGENT_DIR?.trim() || process.env.PI_CODING_AGENT_DIR?.trim();
+  if (agentDir) {
+    const resolved = path.resolve(agentDir.replace(/^~(?=$|[\\/])/, home));
+    paths.push(path.join(resolved, "auth-profiles.json"));
+  }
+
+  // 2. State dir–scoped agent paths (OpenClaw default layout)
+  const stateDir = resolveStateDir();
+  paths.push(path.join(stateDir, "agents", "main", "agent", "auth-profiles.json"));
+
+  // 3. Other agents under stateDir/agents/
+  const agentsRoot = path.join(stateDir, "agents");
+  try {
+    if (fs.existsSync(agentsRoot)) {
+      for (const entry of fs.readdirSync(agentsRoot, { withFileTypes: true })) {
+        if (entry.isDirectory()) {
+          paths.push(path.join(agentsRoot, entry.name, "agent", "auth-profiles.json"));
+        }
+      }
+    }
+  } catch {
+    // ignore read errors
+  }
+
+  // 4. Legacy / global paths (backward compatibility)
+  const envHome = process.env.OPENCLAW_HOME?.trim();
   if (envHome) {
-    paths.push(path.join(envHome, "auth-profiles.json"));
+    paths.push(path.resolve(envHome.replace(/^~(?=$|[\\/])/, home), "auth-profiles.json"));
   }
 
   paths.push(
     path.join(home, ".openclaw", "auth-profiles.json"),
     path.join(home, ".config", "openclaw", "auth-profiles.json"),
   );
+
   return paths;
+}
+
+/**
+ * Resolve OpenClaw state directory.
+ * Mirrors OpenClaw's resolveStateDir logic (OPENCLAW_STATE_DIR, legacy dirs, ~/.openclaw).
+ */
+function resolveStateDir(): string {
+  const home = os.homedir();
+  const override =
+    process.env.OPENCLAW_STATE_DIR?.trim() || process.env.CLAWDBOT_STATE_DIR?.trim();
+  if (override) {
+    return path.resolve(override.replace(/^~(?=$|[\\/])/, home));
+  }
+
+  const newDir = path.join(home, ".openclaw");
+  const legacyDirs = [
+    path.join(home, ".clawdbot"),
+    path.join(home, ".moldbot"),
+    path.join(home, ".moltbot"),
+  ];
+
+  if (process.env.OPENCLAW_TEST_FAST === "1") {
+    return newDir;
+  }
+  if (fs.existsSync(newDir)) {
+    return newDir;
+  }
+  const existingLegacy = legacyDirs.find((dir) => {
+    try {
+      return fs.existsSync(dir);
+    } catch {
+      return false;
+    }
+  });
+  return existingLegacy ?? newDir;
 }
 
 function readEnvApiKey(provider: string): string | null {
