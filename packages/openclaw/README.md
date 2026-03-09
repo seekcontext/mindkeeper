@@ -2,15 +2,35 @@
 
 **Time Machine for Your AI's Brain** — OpenClaw plugin that gives your AI version control for agent context files.
 
-Every change to AGENTS.md, SOUL.md, MEMORY.md, skills, and more is automatically tracked. Your AI can browse history, compare versions, create checkpoints, and roll back any file.
+Every change to `AGENTS.md`, `SOUL.md`, `MEMORY.md`, `memory/**/*.md`, and `skills/**/*.md` can be tracked automatically. Your AI can inspect history, compare versions, create checkpoints, and guide rollback safely.
+
+## Why Use It
+
+This is the best experience if you want your AI to inspect history, show diffs, create checkpoints, and guide rollback in natural language:
+
+- **Natural-language history** — ask your AI what changed and when
+- **Preview-first rollback** — inspect the diff before restoring a file
+- **Named checkpoints** — create safety points before risky edits
+- **Background snapshots** — watcher starts with Gateway
+- **LLM-powered commit messages** — reuse your existing OpenClaw model and auth settings
 
 ## Install
+
+### Option 1 — Install the plugin directly
 
 ```bash
 openclaw plugins install mindkeeper-openclaw
 ```
 
-Restart your Gateway once. The plugin auto-starts a background watcher and registers 5 tools.
+Then restart your Gateway once.
+
+### Option 2 — Install the skill and let the AI guide setup
+
+```bash
+clawhub install mindkeeper
+```
+
+On first use, the AI checks whether `mindkeeper-openclaw` is available. If it is missing, the AI asks for your confirmation before installing the plugin and before restarting Gateway. If automatic restart is unavailable, it tells you to restart Gateway manually.
 
 ## Talk to Your AI
 
@@ -25,29 +45,34 @@ Once installed, ask in natural language:
 
 | Tool | What It Does |
 |------|--------------|
-| `mind_history` | Browse change history for any tracked file |
-| `mind_diff` | Compare any two versions with full unified diff |
-| `mind_rollback` | Two-step rollback: preview first, then execute after confirmation |
+| `mind_history` | Browse change history for one file or all tracked files |
+| `mind_diff` | Compare two versions with a unified diff |
+| `mind_rollback` | Preview rollback first, then execute after confirmation |
 | `mind_snapshot` | Create named checkpoints before risky changes |
-| `mind_status` | Show what files are tracked and what's changed |
+| `mind_status` | Show what files are tracked and what is pending |
 
 ## OpenClaw CLI
 
 ```bash
-openclaw mind status              # See what's tracked and pending
-openclaw mind history SOUL.md     # Browse SOUL.md change history
-openclaw mind snapshot stable-v2  # Save a named checkpoint
+openclaw mind status
+openclaw mind history SOUL.md
+openclaw mind snapshot stable-v2
 ```
 
 ## Requirements
 
-- Node.js ≥ 22
+- Node.js >= 22
 - OpenClaw with Gateway running
+
+## Commit Messages
+
+OpenClaw Plugin mode is currently the only mode that supports LLM-generated commit messages. If no supported model or API key is available, mindkeeper falls back to template messages automatically.
 
 ## Links
 
 - [GitHub](https://github.com/seekcontext/mindkeeper)
 - [Core CLI](https://www.npmjs.com/package/mindkeeper) — Standalone version without OpenClaw
+- [Mindkeeper Skill](https://github.com/seekcontext/mindkeeper/blob/main/packages/openclaw/skills/mindkeeper/SKILL.md)
 
 ## License
 

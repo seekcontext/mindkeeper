@@ -144,7 +144,7 @@ After approval:
    ```bash
    clawhub install mindkeeper
    ```
-   **Drop-in setup:** On first use, the AI automatically installs the mindkeeper-openclaw plugin and restarts the Gateway. No manual steps.
+   **Guided setup:** On first use, the AI checks whether the `mindkeeper-openclaw` plugin is available. If not, it asks for confirmation before installing the plugin and before restarting Gateway. If automatic restart is unavailable, the AI tells the user to restart Gateway manually.
 
 3. **Keep in sync** — When releasing new mindkeeper-openclaw plugin versions, consider publishing a matching skill version if SKILL.md changes.
 

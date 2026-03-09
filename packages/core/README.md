@@ -1,8 +1,18 @@
 # mindkeeper
 
-**Time Machine for Your AI's Brain** — version control for agent context files (AGENTS.md, SOUL.md, MEMORY.md, and more).
+**Time Machine for Your AI's Brain** — version control for agent context files like `AGENTS.md`, `SOUL.md`, `MEMORY.md`, and `skills/**/*.md`.
 
 Every personality tweak, every rule change, every memory — tracked, diffable, and reversible.
+
+## Why Use It
+
+Use `mindkeeper` when you want a lightweight history system for AI context files without forcing your workspace into a normal Git workflow.
+
+- **Automatic snapshots** — capture changes in the background
+- **Readable history** — inspect how your prompts, rules, and memories evolved
+- **Fast diffs** — compare exact wording between versions
+- **Safe rollback** — restore earlier file versions with a preview-first flow
+- **Named checkpoints** — save milestones before risky experiments
 
 ## Install
 
@@ -20,31 +30,31 @@ mindkeeper init --dir ~/.openclaw/workspace
 mindkeeper history SOUL.md --dir ~/.openclaw/workspace
 
 # Compare versions
-mindkeeper diff SOUL.md abc1234 --dir ~/.openclaw/workspace
+mindkeeper diff SOUL.md abc1234 def5678 --dir ~/.openclaw/workspace
 
-# Rollback
+# Roll back with preview and confirmation
 mindkeeper rollback SOUL.md abc1234 --dir ~/.openclaw/workspace
 
-# Named checkpoint
+# Save a named checkpoint
 mindkeeper snapshot stable-v2 --dir ~/.openclaw/workspace
 
-# Background watcher (auto-snapshot on file changes)
+# Start background watching
 mindkeeper watch --dir ~/.openclaw/workspace
 ```
 
-## CLI Reference
+All commands accept `--dir <path>`.
+
+## CLI Commands
 
 | Command | Description |
 |---------|-------------|
 | `init` | Initialize mindkeeper for a directory |
 | `status` | Show tracking status and pending changes |
-| `history [file]` | View change history (optionally filtered by file) |
+| `history [file]` | View change history |
 | `diff <file> <from> [to]` | Compare two versions of a file |
-| `rollback <file> <to>` | Rollback a file with preview and confirmation |
+| `rollback <file> <to>` | Roll back a file with preview and confirmation |
 | `snapshot [name]` | Create a named checkpoint |
-| `watch` | Start background watcher daemon |
-
-All commands accept `--dir <path>` to specify the workspace.
+| `watch` | Start the file watcher daemon |
 
 ## Programmatic API
 
@@ -54,32 +64,37 @@ import { Tracker, Watcher } from "mindkeeper";
 const tracker = new Tracker({ workDir: "/path/to/workspace" });
 await tracker.init();
 
-// Snapshot
-await tracker.snapshot({ name: "my-checkpoint" });
-
-// History
 const commits = await tracker.history({ file: "SOUL.md", limit: 10 });
-
-// Diff
 const diff = await tracker.diff({ file: "SOUL.md", from: "abc1234" });
-
-// Rollback
+await tracker.snapshot({ name: "stable-v2" });
 await tracker.rollback({ file: "SOUL.md", to: "abc1234" });
 ```
 
 ## How It Works
 
-mindkeeper maintains a shadow Git repository in `<workspace>/.mindkeeper/` using [isomorphic-git](https://isomorphic-git.org/) (pure JavaScript, no system Git required). Files stay in place; only history metadata is stored.
+mindkeeper maintains a shadow Git repository in `<workspace>/.mindkeeper/` using [isomorphic-git](https://isomorphic-git.org/) (pure JavaScript, no system Git required).
+
+Your files stay where they are. History is stored separately.
 
 ## Configuration
 
-- **Workspace**: `.mindkeeper.json` in workspace root (tracked, shareable)
-- **Global**: `~/.config/mindkeeper/config.json` (for API keys, never tracked)
+- **Workspace**: `.mindkeeper.json` in the workspace root
+- **Global**: `~/.config/mindkeeper/config.json` for machine-local overrides
+
+## Commit Messages
+
+The standalone CLI currently uses template-based commit messages.
+
+OpenClaw Plugin mode is currently the only mode that supports LLM-generated commit messages. In standalone CLI mode, setting `commitMessage.mode` to `llm` still falls back to template messages.
+
+## Looking for the AI-integrated version?
+
+See [`mindkeeper-openclaw`](https://www.npmjs.com/package/mindkeeper-openclaw) if you want your AI to inspect history, show diffs, create checkpoints, and guide rollback in natural language.
 
 ## Links
 
 - [GitHub](https://github.com/seekcontext/mindkeeper)
-- [OpenClaw Plugin](https://www.npmjs.com/package/mindkeeper-openclaw) — AI-integrated version with `mind_*` tools
+- [OpenClaw Plugin](https://www.npmjs.com/package/mindkeeper-openclaw)
 
 ## License
 

@@ -32,6 +32,7 @@ const SENSITIVE_FIELDS = ["commitMessage.llm.apiKey"] as const;
 const DEFAULT_CONFIG: TrackerConfig = {
   tracking: {
     include: [
+      ".mindkeeper.json",
       "AGENTS.md",
       "SOUL.md",
       "USER.md",

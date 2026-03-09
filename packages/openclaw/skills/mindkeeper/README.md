@@ -1,22 +1,40 @@
 # Mindkeeper Skill
 
-Time Machine for Your AI's Brain — version control for agent context files. This skill teaches your AI to use mindkeeper tools for history, diff, rollback, and snapshots.
+**Time Machine for Your AI's Brain** — install this skill if you want your AI to inspect history, show diffs, create checkpoints, and guide rollback in natural language.
 
-**Setup:** Add this skill alone. When you first ask for mindkeeper capability, the AI will ask for your confirmation before installing the mindkeeper-openclaw plugin and restarting the Gateway. You can also install the plugin manually (see Requirements).
+This skill teaches the AI how to bootstrap and use the `mindkeeper-openclaw` plugin. It is the easiest way to get the OpenClaw Plugin experience without manually setting everything up first.
 
-## What It Does
+## Why Use It
 
-- **Browse history** — See what changed in SOUL.md, AGENTS.md, or any tracked file
+- **Guided setup** — the AI checks whether the plugin is available and walks through first-use install
+- **Safe permissions model** — plugin install and Gateway restart always require explicit confirmation
+- **Natural-language usage** — ask about changes, diffs, rollback, and checkpoints conversationally
+- **Rollback guardrails** — preview first, confirm second
+
+## Install
+
+```bash
+clawhub install mindkeeper
+```
+
+On first use, the AI checks whether `mindkeeper-openclaw` is available. If it is missing, the AI asks for your confirmation before installing the plugin and before restarting Gateway. If automatic restart is unavailable, it tells you to restart Gateway manually.
+
+## What It Enables
+
+- **Browse history** — See what changed in `SOUL.md`, `AGENTS.md`, or any tracked file
 - **Compare versions** — Full unified diff between any two commits
-- **Rollback** — Restore any file to a previous version (with preview + confirmation)
+- **Rollback** — Restore any file to a previous version with preview + confirmation
 - **Named snapshots** — Create checkpoints before risky changes
+- **LLM commit messages** — Available in OpenClaw Plugin mode using your existing OpenClaw model and auth settings
 
 ## Requirements
 
-- Node.js ≥ 22
+- Node.js >= 22
 - OpenClaw with Gateway running
 
-The mindkeeper-openclaw plugin provides the mind_* tools. The AI will ask for your confirmation before running `openclaw plugins install mindkeeper-openclaw` and restarting the Gateway on first use. Alternatively, install it yourself:
+The `mindkeeper-openclaw` plugin provides the actual `mind_*` tools and background watcher. This skill provides the guidance and first-use bootstrap behavior.
+
+If you prefer to install the plugin yourself first:
 
 ```bash
 openclaw plugins install mindkeeper-openclaw
@@ -27,15 +45,15 @@ openclaw plugins install mindkeeper-openclaw
 
 | Action | Purpose |
 |--------|---------|
-| `openclaw plugins install mindkeeper-openclaw` | Fetches the official plugin from npm to add mind_status, mind_history, mind_diff, mind_rollback, mind_snapshot tools |
+| `openclaw plugins install mindkeeper-openclaw` | Fetches the official plugin and makes the `mind_*` tools available |
 | Gateway restart | Loads the newly installed plugin into the running Gateway |
 
-**User consent:** The AI will not run these commands until you explicitly confirm. This ensures you control when plugins are installed and when the Gateway restarts.
+**User consent is required** before either action runs.
 
 ## How to Use
 
-1. Install this skill: `clawhub install mindkeeper`
-2. Ask your AI in natural language. On first use, the AI will ask for confirmation before installing the plugin and restarting the Gateway:
+1. Install the skill: `clawhub install mindkeeper`
+2. Ask your AI in natural language:
    - "What changed in SOUL.md recently?"
    - "Compare my current AGENTS.md to last week's version"
    - "Roll back SOUL.md to yesterday"
@@ -44,17 +62,17 @@ openclaw plugins install mindkeeper-openclaw
 ## Examples
 
 | User says | AI action |
-|-----------|------------|
-| "What changed in SOUL.md?" | `mind_history` with file filter |
+|-----------|-----------|
+| "What changed in SOUL.md?" | `mind_history` with a file filter |
 | "Show me the diff from last week" | `mind_history` → find commit → `mind_diff` |
-| "Undo that change" | `mind_rollback` (preview first, then execute) |
-| "Save a checkpoint before I experiment" | `mind_snapshot` with descriptive name |
+| "Undo that change" | `mind_rollback` preview first, then execute after confirmation |
+| "Save a checkpoint before I experiment" | `mind_snapshot` with a descriptive name |
 
 ## Troubleshooting
 
-- **History is empty** — Call `mind_status` to check if mindkeeper is initialized. Make a small edit to a tracked file to trigger the first snapshot.
-- **Tools not found** — Ensure the mindkeeper-openclaw plugin is installed and Gateway has been restarted.
-- **Rollback not applying** — After rollback, tell the user to run `/new` to reload the session with the restored file.
+- **History is empty** — Call `mind_status` to check whether mindkeeper is initialized. Make a small edit to a tracked file to trigger the first snapshot.
+- **Tools not found** — Ensure the `mindkeeper-openclaw` plugin is installed and Gateway has been restarted.
+- **Rollback not applying** — After rollback, run `/new` to reload the session with the restored file.
 
 ## Links
 

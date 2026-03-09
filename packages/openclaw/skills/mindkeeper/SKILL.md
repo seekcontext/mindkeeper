@@ -1,14 +1,14 @@
 ---
 name: mindkeeper
 description: Time Machine for Your AI's Brain — version control for agent context files. Use when the user asks about changes in SOUL.md, AGENTS.md, MEMORY.md, or other agent context files; when they want to undo, rollback, or compare versions; or when they need a checkpoint before risky edits.
-version: 1.2.2
+version: 1.2.3
 homepage: https://github.com/seekcontext/mindkeeper
 repository: https://github.com/seekcontext/mindkeeper
 ---
 
 # Mindkeeper — Time Machine for Your AI's Brain
 
-Use mindkeeper tools when the user asks about changes, history, or versions of their agent context files (AGENTS.md, SOUL.md, USER.md, IDENTITY.md, TOOLS.md, MEMORY.md, memory/, skills/).
+Use mindkeeper tools when the user asks about changes, history, or versions of their agent context files (`AGENTS.md`, `SOUL.md`, `USER.md`, `IDENTITY.md`, `TOOLS.md`, `HEARTBEAT.md`, `MEMORY.md`, `memory/`, `skills/`).
 
 ## Bootstrap (One-time setup)
 
@@ -21,8 +21,8 @@ Use mindkeeper tools when the user asks about changes, history, or versions of t
      ```bash
      openclaw plugins install mindkeeper-openclaw
      ```
-   - **Restart the gateway** — Use the `gateway` tool with `action: "restart"` and `note: "Restarting to load mindkeeper plugin"`. If gateway restart is disabled or fails, tell the user: "Plugin installed. Restart your Gateway manually to apply."
-   - **Confirm** — Tell the user: "Mindkeeper is ready. Restart complete — you can now ask about history, diffs, rollbacks, or snapshots."
+   - **Restart Gateway if the runtime supports it** — Use the available runtime mechanism to restart Gateway. If restart is unavailable or fails, tell the user: "Plugin installed. Restart your Gateway manually to apply."
+   - **Confirm** — If restart succeeded, tell the user: "Mindkeeper is ready. Restart complete — you can now ask about history, diffs, rollbacks, or snapshots." If restart did not happen, tell the user that the plugin is installed but Gateway must be restarted before the tools will appear.
 
 3. **Alternative** — If the user prefers to install manually, tell them: "Run `openclaw plugins install mindkeeper-openclaw` in your terminal, then restart your Gateway. After that, mindkeeper will be ready."
 
@@ -37,6 +37,17 @@ If `mind_status` succeeds, the plugin is already installed; skip the bootstrap a
 | `mind_diff` | Compare any two versions of a file side-by-side |
 | `mind_rollback` | Restore a file to a previous version (always preview first) |
 | `mind_snapshot` | Save a named checkpoint before making significant changes |
+
+## Tracking Scope
+
+Mindkeeper tracks these files by default:
+
+- `AGENTS.md`, `SOUL.md`, `USER.md`, `IDENTITY.md`
+- `TOOLS.md`, `HEARTBEAT.md`, `MEMORY.md`
+- `memory/**/*.md`
+- `skills/**/*.md`
+
+Excluded by default: `BOOTSTRAP.md`, `canvas/**`, `.git/`, `.mindkeeper/`.
 
 ## When to Use
 
@@ -105,9 +116,11 @@ After success, tell the user: **"Run `/new` to apply the changes to your current
 
 ## Important Notes
 
+- **This skill is the guide, the plugin is the engine** — the `mindkeeper-openclaw` plugin provides the actual `mind_*` tools and watcher; this skill teaches the AI how to bootstrap and use them safely
 - **Rollback is per-file** — it only restores the specified file, not all files at once
 - **Rollbacks are non-destructive** — every rollback creates a new commit, so it can itself be undone
 - **Auto-snapshots run in the background** — the user doesn't need to manually save; mindkeeper captures every change automatically
+- **LLM commit messages are plugin-only for now** — currently supported only through the OpenClaw plugin; standalone CLI mode falls back to template messages
 - **Named snapshots are the safety net** — encourage users to snapshot before major personality or rule changes
 - **If history is empty** — mindkeeper may not have initialized yet, or no changes have been made since install. Call `mind_status` to check.
 - **Commit hashes** — always use the `oid` field from `mind_history` results. Short 8-character hashes are fine.

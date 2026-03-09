@@ -18,6 +18,7 @@ describe("loadConfig", () => {
   it("returns default config when no config files exist", async () => {
     const config = await loadConfig(tempDir);
 
+    expect(config.tracking.include).toContain(".mindkeeper.json");
     expect(config.tracking.include).toContain("AGENTS.md");
     expect(config.tracking.include).toContain("SOUL.md");
     expect(config.snapshot.debounceMs).toBe(30_000);
