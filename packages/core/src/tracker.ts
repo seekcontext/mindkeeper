@@ -18,8 +18,8 @@ export interface TrackerOptions {
   /** Overrides merged on top of loaded config (e.g. from OpenClaw plugin) */
   configOverrides?: Partial<TrackerConfig>;
   llmProvider?: LlmProvider;
-  /** Optional logger for fallback diagnostics (e.g. why template was used instead of LLM) */
-  log?: { warn?: (msg: string) => void };
+  /** Optional logger for commit message source and fallback diagnostics */
+  log?: { info?: (msg: string) => void; warn?: (msg: string) => void };
 }
 
 export interface TrackerStatus {
@@ -62,7 +62,7 @@ export class Tracker {
   readonly gitDir: string;
 
   private configOverrides?: Partial<TrackerConfig>;
-  private log?: { warn?: (msg: string) => void };
+  private log?: { info?: (msg: string) => void; warn?: (msg: string) => void };
 
   constructor(options: TrackerOptions) {
     this.workDir = path.resolve(options.workDir);
@@ -249,18 +249,39 @@ export class Tracker {
     }
 
     let message: string | null = null;
+    let usedLlm = false;
+    let templateReason: string | null = null;
+
     if (this.config.commitMessage.mode === "llm" && diffs.length > 0) {
-      message = await generateLlmMessage(diffs, this.llmProvider, this.log);
-    }
-    if (!message) {
-      if (this.config.commitMessage.mode === "llm" && this.log?.warn) {
-        const reason =
-          diffs.length === 0
-            ? "No diff available (first commit or no file changes), using template"
-            : "LLM failed, falling back to template";
-        this.log.warn(`[mindkeeper] ${reason}`);
+      if (this.llmProvider) {
+        message = await generateLlmMessage(diffs, this.llmProvider, this.log);
+        if (message) usedLlm = true;
+        else templateReason = "LLM API call failed (check logs above for error)";
+      } else {
+        templateReason =
+          "LLM provider not configured (no default model or API key in OpenClaw)";
       }
+    } else if (this.config.commitMessage.mode === "llm" && diffs.length === 0) {
+      templateReason =
+        "first commit or no diff (no previous version to compare, diffs.length=0)";
+    } else {
+      templateReason = "config: commitMessage.mode is 'template'";
+    }
+
+    if (!message) {
       message = generateTemplateMessage(filesToCommit);
+    }
+
+    if (this.log) {
+      if (usedLlm) {
+        this.log.info?.(
+          `[mindkeeper] Commit message: LLM-generated — "${message.slice(0, 50)}${message.length > 50 ? "…" : ""}"`,
+        );
+      } else {
+        this.log.warn?.(
+          `[mindkeeper] Commit message: template — reason: ${templateReason}`,
+        );
+      }
     }
 
     const oid = await this.store.commit(message);

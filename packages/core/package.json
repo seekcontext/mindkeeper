@@ -1,6 +1,6 @@
 {
   "name": "mindkeeper",
-  "version": "0.2.28",
+  "version": "0.2.29",
   "description": "Time machine for your AI's brain — auto-snapshot, diff, and rollback for AGENTS.md, SOUL.md, MEMORY.md, and more",
   "keywords": [
     "agent",

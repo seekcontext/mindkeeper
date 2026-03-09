@@ -1,6 +1,6 @@
 {
   "name": "mindkeeper-openclaw",
-  "version": "0.2.30",
+  "version": "0.2.31",
   "description": "OpenClaw plugin for mindkeeper: auto-snapshot, diff, and rollback for agent context files",
   "keywords": [
     "openclaw",
