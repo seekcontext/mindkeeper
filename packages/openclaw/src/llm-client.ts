@@ -16,7 +16,7 @@ const SYSTEM_PROMPT =
   "commit message (max 72 chars). Describe WHAT changed semantically, not " +
   "technically. No quotes, no conventional-commit prefix. Return ONLY the message.";
 
-const LLM_TIMEOUT_MS = 15_000;
+const LLM_TIMEOUT_MS = 45_000;
 const MAX_TOKENS = 100;
 
 export interface CallLlmParams {
