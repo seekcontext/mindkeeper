@@ -1,7 +1,7 @@
 ---
 name: mindkeeper
 description: Time Machine for Your AI's Brain — version control for agent context files. Use when the user asks about changes in SOUL.md, AGENTS.md, MEMORY.md, or other agent context files; when they want to undo, rollback, or compare versions; or when they need a checkpoint before risky edits.
-version: 1.2.5
+version: 1.2.6
 homepage: https://github.com/seekcontext/mindkeeper
 repository: https://github.com/seekcontext/mindkeeper
 ---

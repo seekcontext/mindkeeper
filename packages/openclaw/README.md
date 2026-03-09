@@ -24,7 +24,7 @@ openclaw plugins install mindkeeper-openclaw
 
 Then restart your Gateway once.
 
-On startup, the plugin also mirrors its built-in `mindkeeper` skill into the workspace so new sessions can still find the bootstrap instructions even if no separate ClawHub skill was installed.
+On startup, the plugin mirrors its built-in `mindkeeper` skill into `<workspace>/skills/mindkeeper/` (OpenClaw's standard workspace skills path) so new sessions can find the bootstrap instructions even if no separate ClawHub skill was installed.
 
 ### Option 2 — Install the skill and let the AI guide setup
 

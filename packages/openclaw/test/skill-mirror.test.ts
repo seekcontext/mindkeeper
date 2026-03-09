@@ -32,7 +32,7 @@ describe("ensureWorkspaceSkillMirror", () => {
 
     ensureWorkspaceSkillMirror(workspaceDir, { sourceDir });
 
-    const targetDir = path.join(workspaceDir, "mindkeeper");
+    const targetDir = path.join(workspaceDir, "skills", "mindkeeper");
     expect(existsSync(path.join(targetDir, "SKILL.md"))).toBe(true);
     expect(existsSync(path.join(targetDir, "README.md"))).toBe(true);
     expect(existsSync(path.join(targetDir, "clawhub.json"))).toBe(true);
@@ -43,11 +43,11 @@ describe("ensureWorkspaceSkillMirror", () => {
     const sourceDir = makeTempDir("mindkeeper-skill-");
     writeSkillFixture(sourceDir);
 
-    const targetDir = path.join(workspaceDir, "mindkeeper");
+    const targetDir = path.join(workspaceDir, "skills", "mindkeeper");
     mkdirSync(targetDir, { recursive: true });
-    writeFileSync(path.join(workspaceDir, "mindkeeper", "SKILL.md"), "# existing\n", "utf8");
-    writeFileSync(path.join(workspaceDir, "mindkeeper", "README.md"), "# existing readme\n", "utf8");
-    writeFileSync(path.join(workspaceDir, "mindkeeper", "clawhub.json"), '{ "name": "Existing" }\n', "utf8");
+    writeFileSync(path.join(targetDir, "SKILL.md"), "# existing\n", "utf8");
+    writeFileSync(path.join(targetDir, "README.md"), "# existing readme\n", "utf8");
+    writeFileSync(path.join(targetDir, "clawhub.json"), '{ "name": "Existing" }\n', "utf8");
 
     ensureWorkspaceSkillMirror(workspaceDir, { sourceDir });
 

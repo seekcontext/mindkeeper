@@ -21,7 +21,7 @@ export function ensureWorkspaceSkillMirror(
   if (!workspaceDir) return;
 
   const sourceDir = options.sourceDir ?? resolveBundledSkillDir();
-  const targetDir = path.join(workspaceDir, SKILL_DIR_NAME);
+  const targetDir = path.join(workspaceDir, "skills", SKILL_DIR_NAME);
 
   if (!existsSync(sourceDir)) {
     options.log?.warn?.(`[mindkeeper] Built-in skill directory not found: ${sourceDir}`);

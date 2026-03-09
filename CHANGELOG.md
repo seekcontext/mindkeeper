@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.28] - 2026-03-09
+
+### Fixed (mindkeeper-openclaw)
+
+- **Skill mirror path now matches OpenClaw convention** — The plugin mirrors the built-in skill to `<workspace>/skills/mindkeeper/` instead of `<workspace>/mindkeeper/`, so OpenClaw correctly discovers it as a workspace skill.
+
 ## [0.2.27] - 2026-03-09
 
 ### Fixed (mindkeeper-openclaw)
