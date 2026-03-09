@@ -138,12 +138,8 @@ export class Tracker {
   async diff(options: DiffOptions): Promise<DiffResult> {
     const to = options.to ?? "HEAD";
 
-    const fromOid =
-      options.from === "HEAD"
-        ? await this.resolveHead()
-        : options.from;
-    const toOid =
-      to === "HEAD" ? await this.resolveHead() : to;
+    const fromOid = await this.resolveOid(options.from);
+    const toOid = await this.resolveOid(to);
 
     if (!fromOid || !toOid) {
       throw new Error("Could not resolve commit references");
@@ -162,7 +158,11 @@ export class Tracker {
   }
 
   async rollback(options: RollbackOptions): Promise<CommitInfo> {
-    await this.store.restoreFile(options.file, options.to);
+    const toOid = await this.resolveOid(options.to);
+    if (!toOid) {
+      throw new Error(`Could not resolve commit: ${options.to}`);
+    }
+    await this.store.restoreFile(options.file, toOid);
     await this.store.addFiles([options.file]);
 
     const shortHash = options.to.slice(0, 8);
@@ -208,14 +208,39 @@ export class Tracker {
     await this.store.addFiles(filesToCommit);
 
     const diffs: DiffResult[] = [];
-    for (const file of filesToCommit) {
-      try {
-        const d = await this.diff({ file, from: "HEAD" });
-        if (d.additions > 0 || d.deletions > 0) {
-          diffs.push(d);
+    let headOid: string | null = null;
+    try {
+      headOid = await this.resolveHead();
+    } catch {
+      // no commits yet — skip diff for message generation
+    }
+
+    if (headOid) {
+      for (const file of filesToCommit) {
+        try {
+          const oldContent = (await this.store.readFile(file, headOid!)) ?? "";
+          let newContent: string;
+          try {
+            newContent = await fsPromises.readFile(
+              path.join(this.workDir, file),
+              "utf-8",
+            );
+          } catch {
+            newContent = ""; // file deleted
+          }
+          const d = computeDiff({
+            file,
+            fromVersion: headOid.slice(0, 8),
+            toVersion: "(staged)",
+            oldContent,
+            newContent,
+          });
+          if (d.additions > 0 || d.deletions > 0) {
+            diffs.push(d);
+          }
+        } catch {
+          // no previous version — skip diff for message generation
         }
-      } catch {
-        // no previous version — skip diff for message generation
       }
     }
 
@@ -299,6 +324,28 @@ export class Tracker {
       gitdir: this.gitDir,
       ref: "HEAD",
     });
+  }
+
+  /**
+   * Resolves a ref (HEAD, short hash, or full oid) to a full commit oid.
+   * Uses expandOid for short hashes since isomorphic-git readBlob may not support them.
+   */
+  private async resolveOid(ref: string): Promise<string | null> {
+    if (ref === "HEAD") {
+      return this.resolveHead();
+    }
+    const git = await import("isomorphic-git");
+    const fs = await import("node:fs");
+    try {
+      return await git.default.expandOid({
+        fs: fs.default,
+        dir: this.workDir,
+        gitdir: this.gitDir,
+        oid: ref,
+      });
+    } catch {
+      return null;
+    }
   }
 
   private async ensureGitignore(): Promise<void> {

@@ -1,7 +1,7 @@
 ---
 name: mindkeeper
 description: Time Machine for Your AI's Brain — version control for agent context files. Use when the user asks about changes in SOUL.md, AGENTS.md, MEMORY.md, or other agent context files; when they want to undo, rollback, or compare versions; or when they need a checkpoint before risky edits.
-version: 1.2.6
+version: 1.2.7
 homepage: https://github.com/seekcontext/mindkeeper
 repository: https://github.com/seekcontext/mindkeeper
 ---
@@ -102,6 +102,7 @@ mind_history({ file: "SOUL.md", limit: 20 })
 ### mind_diff
 Compares two versions of a file. `from` and `to` are short or full commit hashes from `mind_history`.
 - Omit `to` to compare `from` against the current version (HEAD).
+- **To see what changed in the latest commit**: use `from: entries[1].oid` (the parent) and `to: entries[0].oid` or omit `to` for HEAD. Do NOT use `from: entries[0].oid` with `to: HEAD` — that compares the same commit to itself and yields an empty diff.
 
 ```
 mind_diff({ file: "SOUL.md", from: "a1b2c3d4" })
