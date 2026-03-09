@@ -1,9 +1,13 @@
 /**
- * LLM HTTP client — fetch calls only, no environment variable access.
+ * LLM client using Vercel AI SDK — unified interface across providers.
  * API key is passed as a parameter. Kept separate from auth-resolver.ts
  * to avoid security scanner false positives (env + network in same file).
  */
 
+import { generateText } from "ai";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { normalizeProvider } from "./auth-resolver.js";
 
 const SYSTEM_PROMPT =
@@ -25,105 +29,85 @@ export interface CallLlmParams {
 
 export async function callLlm(params: CallLlmParams): Promise<string> {
   const normalized = normalizeProvider(params.provider);
+  const abortSignal = AbortSignal.timeout(LLM_TIMEOUT_MS);
 
   if (normalized === "anthropic") {
-    return callAnthropic(params);
+    return callWithAnthropic(params, abortSignal);
   }
   if (normalized === "google") {
-    return callGoogle(params);
+    return callWithGoogle(params, abortSignal);
   }
-  return callOpenAiCompatible(params);
+  return callWithOpenAiCompatible(params, abortSignal);
 }
 
-async function callAnthropic(params: {
-  model: string;
-  apiKey: string;
-  userPrompt: string;
-}): Promise<string> {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": params.apiKey,
-      "content-type": "application/json",
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: params.model,
-      max_tokens: MAX_TOKENS,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: params.userPrompt }],
-    }),
-    signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
+async function callWithAnthropic(
+  params: { model: string; apiKey: string; userPrompt: string },
+  abortSignal: AbortSignal,
+): Promise<string> {
+  const anthropic = createAnthropic({ apiKey: params.apiKey });
+  const { text } = await generateText({
+    model: anthropic(params.model),
+    system: SYSTEM_PROMPT,
+    prompt: params.userPrompt,
+    maxOutputTokens: MAX_TOKENS,
+    abortSignal,
   });
-
-  if (!res.ok) {
-    throw new Error(`Anthropic API ${res.status}: ${await res.text().catch(() => "")}`);
-  }
-  const data = (await res.json()) as { content?: Array<{ text?: string }> };
-  return data.content?.[0]?.text?.trim() ?? "";
+  return text?.trim() ?? "";
 }
 
-async function callOpenAiCompatible(params: {
-  provider: string;
-  model: string;
-  apiKey: string;
-  userPrompt: string;
-  baseUrl?: string;
-}): Promise<string> {
+async function callWithGoogle(
+  params: { model: string; apiKey: string; userPrompt: string },
+  abortSignal: AbortSignal,
+): Promise<string> {
+  const google = createGoogleGenerativeAI({ apiKey: params.apiKey });
+  const { text } = await generateText({
+    model: google(params.model),
+    system: SYSTEM_PROMPT,
+    prompt: params.userPrompt,
+    maxOutputTokens: MAX_TOKENS,
+    abortSignal,
+  });
+  return text?.trim() ?? "";
+}
+
+async function callWithOpenAiCompatible(
+  params: {
+    provider: string;
+    model: string;
+    apiKey: string;
+    userPrompt: string;
+    baseUrl?: string;
+  },
+  abortSignal: AbortSignal,
+): Promise<string> {
   const baseUrl = resolveOpenAiBaseUrl(params.provider, params.baseUrl);
+  const normalized = normalizeProvider(params.provider);
 
-  const res = await fetch(`${baseUrl}/chat/completions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${params.apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: params.model,
-      max_tokens: MAX_TOKENS,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: params.userPrompt },
-      ],
+  // Moonshot k2.5: disable thinking for simple tasks
+  const isMoonshotK25 =
+    (normalized === "moonshot" || normalized === "moonshotcn") &&
+    params.model.includes("k2.5");
+
+  const provider = createOpenAICompatible({
+    baseURL: baseUrl,
+    name: params.provider,
+    apiKey: params.apiKey,
+    ...(isMoonshotK25 && {
+      transformRequestBody: (body: Record<string, unknown>) => ({
+        ...body,
+        thinking: { type: "disabled" },
+      }),
     }),
-    signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
   });
 
-  if (!res.ok) {
-    throw new Error(`OpenAI-compatible API ${res.status}: ${await res.text().catch(() => "")}`);
-  }
-  const data = (await res.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  return data.choices?.[0]?.message?.content?.trim() ?? "";
-}
-
-async function callGoogle(params: {
-  model: string;
-  apiKey: string;
-  userPrompt: string;
-}): Promise<string> {
-  const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/${params.model}:generateContent?key=${params.apiKey}`;
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      contents: [{ parts: [{ text: params.userPrompt }] }],
-      generationConfig: { maxOutputTokens: MAX_TOKENS },
-    }),
-    signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
+  const { text } = await generateText({
+    model: provider.chatModel(params.model),
+    system: SYSTEM_PROMPT,
+    prompt: params.userPrompt,
+    maxOutputTokens: MAX_TOKENS,
+    abortSignal,
   });
-
-  if (!res.ok) {
-    throw new Error(`Google AI API ${res.status}: ${await res.text().catch(() => "")}`);
-  }
-  const data = (await res.json()) as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-  };
-  return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? "";
+  return text?.trim() ?? "";
 }
 
 function resolveOpenAiBaseUrl(provider: string, configuredBaseUrl?: string): string {

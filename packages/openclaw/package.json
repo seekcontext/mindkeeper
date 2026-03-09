@@ -1,6 +1,6 @@
 {
   "name": "mindkeeper-openclaw",
-  "version": "0.2.34",
+  "version": "0.2.35",
   "description": "OpenClaw plugin for mindkeeper: auto-snapshot, diff, and rollback for agent context files",
   "keywords": [
     "openclaw",
@@ -43,9 +43,13 @@
     ]
   },
   "dependencies": {
-    "isomorphic-git": "^1.29.0",
+    "@ai-sdk/anthropic": "^3.0.58",
+    "@ai-sdk/google": "^3.0.43",
+    "@ai-sdk/openai-compatible": "^2.0.35",
+    "ai": "^6.0.116",
     "chokidar": "^4.0.0",
     "diff": "^7.0.0",
+    "isomorphic-git": "^1.29.0",
     "minimatch": "^10.0.0"
   },
   "devDependencies": {
