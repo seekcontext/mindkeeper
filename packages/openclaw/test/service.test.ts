@@ -60,7 +60,7 @@ describe("createWatcherService", () => {
   it("warns and skips startup when no workspace is available", async () => {
     const warn = vi.fn();
     const trackerRef = { current: null };
-    const service = createWatcherService({ log: { warn } }, trackerRef);
+    const service = createWatcherService({ logger: { warn } }, trackerRef);
 
     await service.start({} as never);
 
@@ -82,7 +82,7 @@ describe("createWatcherService", () => {
     };
     const trackerRef = { current: null };
     const service = createWatcherService(
-      { pluginConfig, log: { info, error } },
+      { pluginConfig, logger: { info, error } },
       trackerRef,
     );
 

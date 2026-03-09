@@ -27,7 +27,7 @@ export default function mindkeeperPlugin(api: OpenClawPluginApi) {
   // Some OpenClaw flows look for skills inside the workspace instead of the
   // installed extension directory. Mirror the built-in skill so `/new` sessions
   // can still find the mindkeeper bootstrap instructions.
-  ensureWorkspaceSkillMirror(api.getWorkspaceDir?.(), { log: api.log });
+  ensureWorkspaceSkillMirror(api.getWorkspaceDir?.(), { log: api.logger });
 
   const watcherService = createWatcherService(api, trackerRef);
   api.registerService?.(watcherService);
@@ -35,7 +35,7 @@ export default function mindkeeperPlugin(api: OpenClawPluginApi) {
   // Auto-add tools to config on first load (no separate setup command needed)
   ensureToolsInConfig(api);
 
-  api.log?.info?.("[mindkeeper] Plugin loaded.");
+  api.logger?.info?.("[mindkeeper] Plugin loaded.");
 }
 
 function ensureToolsInConfig(api: OpenClawPluginApi): void {
@@ -61,7 +61,7 @@ function ensureToolsInConfig(api: OpenClawPluginApi): void {
   void writeConfigFile({
     ...cfg,
     tools: { ...cfg.tools, [key]: merged },
-  }).catch((err) => api.log?.warn?.(`[mindkeeper] Failed to auto-update tools.${key}:`, String(err)));
+  }).catch((err) => api.logger?.warn?.(`[mindkeeper] Failed to auto-update tools.${key}:`, String(err)));
 }
 
 /**
@@ -77,7 +77,7 @@ interface OpenClawPluginApi {
   registerCli?(registrar: (ctx: unknown) => void, opts?: { commands?: string[] }): void;
   registerService?(service: PluginService): void;
   registerHook?(events: string[], handler: (...args: unknown[]) => void): void;
-  log?: {
+  logger?: {
     info?(...args: unknown[]): void;
     warn?(...args: unknown[]): void;
     error?(...args: unknown[]): void;

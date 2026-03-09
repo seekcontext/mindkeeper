@@ -22,7 +22,7 @@ interface PluginService {
 
 interface PluginApi {
   pluginConfig?: Partial<TrackerConfig>;
-  log?: {
+  logger?: {
     info?(...args: unknown[]): void;
     warn?(...args: unknown[]): void;
     error?(...args: unknown[]): void;
@@ -36,9 +36,9 @@ export function createWatcherService(
   let watcher: Watcher | null = null;
 
   const log = {
-    info: (msg: string) => api.log?.info?.(msg),
-    warn: (msg: string) => api.log?.warn?.(msg),
-    error: (msg: string) => api.log?.error?.(msg),
+    info: (msg: string) => api.logger?.info?.(msg),
+    warn: (msg: string) => api.logger?.warn?.(msg),
+    error: (msg: string) => api.logger?.error?.(msg),
   };
 
   return {
@@ -51,7 +51,7 @@ export function createWatcherService(
         return;
       }
 
-      ensureWorkspaceSkillMirror(workspaceDir, { log: api.log });
+      ensureWorkspaceSkillMirror(workspaceDir, { log: api.logger });
 
       log.info(
         `[mindkeeper] Service starting: ctx.config=${ctx.config ? "present" : "missing"}, ` +

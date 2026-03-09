@@ -41,7 +41,7 @@ describe("mindkeeperPlugin", () => {
     mindkeeperPlugin({
       getWorkspaceDir,
       registerService,
-      log: { info },
+      logger: { info },
     });
 
     expect(mocked.registerTrackerTools).toHaveBeenCalledOnce();
@@ -121,7 +121,7 @@ describe("mindkeeperPlugin", () => {
       runtime: {
         config: { writeConfigFile },
       },
-      log: { warn },
+      logger: { warn },
     } as unknown as Parameters<typeof mindkeeperPlugin>[0]);
 
     await Promise.resolve();
