@@ -18,6 +18,8 @@ export interface TrackerOptions {
   /** Overrides merged on top of loaded config (e.g. from OpenClaw plugin) */
   configOverrides?: Partial<TrackerConfig>;
   llmProvider?: LlmProvider;
+  /** Optional logger for fallback diagnostics (e.g. why template was used instead of LLM) */
+  log?: { warn?: (msg: string) => void };
 }
 
 export interface TrackerStatus {
@@ -60,6 +62,7 @@ export class Tracker {
   readonly gitDir: string;
 
   private configOverrides?: Partial<TrackerConfig>;
+  private log?: { warn?: (msg: string) => void };
 
   constructor(options: TrackerOptions) {
     this.workDir = path.resolve(options.workDir);
@@ -70,6 +73,7 @@ export class Tracker {
     this.configLoaded = options.config !== undefined;
     this.configOverrides = options.configOverrides;
     this.llmProvider = options.llmProvider;
+    this.log = options.log;
 
     this.store = new IsomorphicGitStore({
       workDir: this.workDir,
@@ -246,9 +250,16 @@ export class Tracker {
 
     let message: string | null = null;
     if (this.config.commitMessage.mode === "llm" && diffs.length > 0) {
-      message = await generateLlmMessage(diffs, this.llmProvider);
+      message = await generateLlmMessage(diffs, this.llmProvider, this.log);
     }
     if (!message) {
+      if (this.config.commitMessage.mode === "llm" && this.log?.warn) {
+        const reason =
+          diffs.length === 0
+            ? "No diff available (first commit or no file changes), using template"
+            : "LLM failed, falling back to template";
+        this.log.warn(`[mindkeeper] ${reason}`);
+      }
       message = generateTemplateMessage(filesToCommit);
     }
 

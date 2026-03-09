@@ -62,6 +62,7 @@ export function createWatcherService(
         workDir: workspaceDir,
         llmProvider: llmProvider ?? undefined,
         configOverrides: api.pluginConfig,
+        log,
       });
       await tracker.init();
       trackerRef.current = tracker;

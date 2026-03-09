@@ -13,12 +13,16 @@ export interface LlmProvider {
 export async function generateLlmMessage(
   diffs: DiffResult[],
   provider?: LlmProvider,
+  log?: { warn?: (msg: string) => void },
 ): Promise<string | null> {
   if (!provider) return null;
 
   try {
     return await provider.generateCommitMessage(diffs);
-  } catch {
+  } catch (err) {
+    const msg =
+      err instanceof Error ? err.message : String(err);
+    log?.warn?.(`[mindkeeper] LLM commit message error: ${msg}`);
     return null;
   }
 }
