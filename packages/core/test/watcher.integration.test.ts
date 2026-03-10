@@ -191,9 +191,9 @@ describe("Watcher integration: files created after init", () => {
     // Write a file and stop before the 100ms debounce fires naturally.
     await writeFile("AGENTS.md", "# Rules v1");
 
-    // Give chokidar just enough time to detect the event and queue the pending
-    // change (but less than the 100ms debounce).
-    await sleep(40);
+    // Give chokidar time to detect the event and queue the pending change
+    // (must be less than DEBOUNCE_MS so the debounce timer has not fired yet).
+    await sleep(80);
 
     await watcher.stop();
     watcher = null; // prevent afterEach double-stop
