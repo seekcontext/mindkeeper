@@ -1,6 +1,6 @@
 {
   "name": "mindkeeper",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Time machine for your AI's brain — auto-snapshot, diff, and rollback for AGENTS.md, SOUL.md, MEMORY.md, and more",
   "keywords": [
     "agent",
@@ -40,7 +40,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
-    "test": "vitest run",
+    "test": "vitest run --project unit && vitest run --project integration",
     "prepublishOnly": "pnpm run clean && pnpm run build && pnpm run test"
   },
   "dependencies": {

@@ -258,3 +258,96 @@ describe("Tracker deletion snapshots", () => {
     expect(status.pendingChanges).toHaveLength(0);
   });
 });
+
+describe("Tracker: files created after init are auto-committed", () => {
+  it("case 1 — file in include list not present at init, later created, appears as added and is auto-committed", async () => {
+    // MEMORY.md is in the default include list but does NOT exist at init time
+    await tracker.init();
+
+    // Verify: no history for MEMORY.md yet
+    const historyBefore = await tracker.history({ file: "MEMORY.md" });
+    expect(historyBefore).toHaveLength(0);
+
+    // Simulate: agent creates the file after init
+    await writeFile("MEMORY.md", "# Memory\nFirst entry.");
+
+    // status() should report it as pending 'added'
+    const statusPending = await tracker.status();
+    expect(statusPending.pendingChanges).toContainEqual({
+      filepath: "MEMORY.md",
+      status: "added",
+    });
+
+    // Watcher calls autoSnapshot() when it detects the 'add' fs event.
+    // Call autoSnapshot() directly here — Watcher integration is tested separately.
+    const commit = await tracker.autoSnapshot();
+
+    expect(commit).not.toBeNull();
+    expect(commit!.message).toContain("MEMORY.md");
+
+    // File now has commit history
+    const historyAfter = await tracker.history({ file: "MEMORY.md" });
+    expect(historyAfter.length).toBeGreaterThanOrEqual(1);
+
+    // No more pending changes
+    const status = await tracker.status();
+    expect(status.pendingChanges).toHaveLength(0);
+  });
+
+  it("case 2 — glob-pattern files (memory/**/*.md) created after init are auto-committed", async () => {
+    // memory/ directory and daily notes don't exist at init time
+    await tracker.init();
+
+    // Simulate: agent creates the memory/ directory and a daily note
+    await fs.mkdir(path.join(tempDir, "memory"), { recursive: true });
+    await writeFile("memory/2026-03-10.md", "# Daily notes\n- Resolved issue #42");
+
+    // Verify pending as 'added'
+    const statusPending = await tracker.status();
+    expect(statusPending.pendingChanges).toContainEqual({
+      filepath: "memory/2026-03-10.md",
+      status: "added",
+    });
+
+    const commit = await tracker.autoSnapshot();
+
+    expect(commit).not.toBeNull();
+    expect(commit!.message).toContain("memory/2026-03-10.md");
+
+    const history = await tracker.history({ file: "memory/2026-03-10.md" });
+    expect(history.length).toBeGreaterThanOrEqual(1);
+
+    const status = await tracker.status();
+    expect(status.pendingChanges).toHaveLength(0);
+  });
+
+  it("case 3 — file present at init but never committed is picked up on next modification", async () => {
+    // First init with no tracked files → repo initialized but no initial commit content
+    await tracker.init();
+
+    // Create MEMORY.md without triggering watcher (simulates file written
+    // between sessions while watcher was not running)
+    await writeFile("MEMORY.md", "# Memory v1");
+
+    // status() should report it as pending 'added'
+    const statusBefore = await tracker.status();
+    expect(statusBefore.pendingChanges).toContainEqual({
+      filepath: "MEMORY.md",
+      status: "added",
+    });
+
+    // Next write triggers autoSnapshot (via watcher in real usage)
+    await writeFile("MEMORY.md", "# Memory v1\n- New entry");
+    const commit = await tracker.autoSnapshot();
+
+    expect(commit).not.toBeNull();
+
+    // File is now clean
+    const statusAfter = await tracker.status();
+    expect(statusAfter.pendingChanges).toHaveLength(0);
+
+    // And has version history
+    const history = await tracker.history({ file: "MEMORY.md" });
+    expect(history.length).toBeGreaterThanOrEqual(1);
+  });
+});

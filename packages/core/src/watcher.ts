@@ -10,6 +10,8 @@ export interface WatcherOptions {
   debounceMs?: number;
   onSnapshot?: (commit: { oid: string; message: string }) => void;
   onError?: (error: Error) => void;
+  /** Called once chokidar has finished its initial scan and is ready to receive events. */
+  onReady?: () => void;
 }
 
 export class Watcher {
@@ -21,6 +23,7 @@ export class Watcher {
   private lockfilePath: string;
   private onSnapshot?: WatcherOptions["onSnapshot"];
   private onError?: WatcherOptions["onError"];
+  private onReady?: WatcherOptions["onReady"];
 
   constructor(options: WatcherOptions) {
     this.tracker = options.tracker;
@@ -28,17 +31,17 @@ export class Watcher {
     this.lockfilePath = path.join(options.tracker.gitDir, LOCKFILE_NAME);
     this.onSnapshot = options.onSnapshot;
     this.onError = options.onError;
+    this.onReady = options.onReady;
   }
 
   async start(): Promise<void> {
     await this.acquireLock();
 
-    const config = this.tracker.getConfig();
-    const watchPaths = config.tracking.include.map((pattern) =>
-      path.join(this.tracker.workDir, pattern),
-    );
-
-    this.watcher = watch(watchPaths, {
+    // Watch the whole workDir directory and filter events through isTracked()
+    // rather than passing individual glob patterns to chokidar. Chokidar's
+    // "add" event is unreliable for newly-created files when watching glob
+    // paths directly; watching the directory root avoids this limitation.
+    this.watcher = watch(this.tracker.workDir, {
       ignoreInitial: true,
       persistent: true,
       ignored: [
@@ -51,6 +54,13 @@ export class Watcher {
     this.watcher.on("add", (filePath) => this.handleChange(filePath));
     this.watcher.on("unlink", (filePath) => this.handleChange(filePath));
     this.watcher.on("error", (err) => this.onError?.(err instanceof Error ? err : new Error(String(err))));
+    this.watcher.on("ready", () => this.onReady?.());
+
+    // Wait for the initial scan to complete so callers know the watcher is
+    // fully active before they write any files.
+    await new Promise<void>((resolve) => {
+      this.watcher!.once("ready", resolve);
+    });
   }
 
   async stop(): Promise<void> {
